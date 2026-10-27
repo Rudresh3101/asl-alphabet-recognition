@@ -9,8 +9,26 @@ from PIL import Image
 
 # -------------------- Configuration --------------------
 BASE_DIR = Path(__file__).resolve().parent
-MODEL_PATH = BASE_DIR / "models" / "asl_mobilenetv2.keras"
-LABELS_PATH = BASE_DIR / "models" / "class_names.json"
+
+MODEL_CANDIDATES = [
+    BASE_DIR / "models" / "asl_mobilenetv2.keras",
+    BASE_DIR / "asl_mobilenetv2.keras",
+]
+
+LABEL_CANDIDATES = [
+    BASE_DIR / "models" / "class_names.json",
+    BASE_DIR / "class_names.json",
+]
+
+MODEL_PATH = next(
+    (p for p in MODEL_CANDIDATES if p.is_file()),
+    MODEL_CANDIDATES[0],
+)
+
+LABELS_PATH = next(
+    (p for p in LABEL_CANDIDATES if p.is_file()),
+    LABEL_CANDIDATES[0],
+)
 IMAGE_SIZE = 160
 CONFIDENCE_THRESHOLD = 0.50
 
@@ -68,7 +86,23 @@ st.info(
 try:
     model, class_names = load_asl_model()
 except Exception as exc:
-    st.error("The model could not be loaded. Check that the model files are present.")
+    st.error("The model could not be loaded.")
+    st.write("Repository directory:", str(BASE_DIR))
+    st.write("Model path:", str(MODEL_PATH))
+    st.write("Model exists:", MODEL_PATH.is_file())
+    st.write("Labels path:", str(LABELS_PATH))
+    st.write("Labels exist:", LABELS_PATH.is_file())
+
+    st.write("Root directory contents:")
+    st.write([p.name for p in BASE_DIR.iterdir()])
+
+    models_dir = BASE_DIR / "models"
+    st.write("Models directory exists:", models_dir.is_dir())
+
+    if models_dir.is_dir():
+        st.write("Models directory contents:")
+        st.write([p.name for p in models_dir.iterdir()])
+
     st.exception(exc)
     st.stop()
 
